@@ -280,25 +280,26 @@ module.exports = function (
 	}
 
 	Session.prototype.rmrf = function (path, cb) {
-		// this.getChildren(
-		// 	path,
-		// 	function (err, children, stat) {
-		// 		if (err) {
-		// 			return cb(err)
-		// 		}
-		// 		if (children.length === 0) {
-		// 			return this.del(path, stat.version, cb)
-		// 		}
-		// 		async.forEachSeries(
-		// 			children,
-		// 			function (child, next) {
-		// 				this.rmrf(path + '/' + child, next)
-		// 			}.bind(this),
-		// 			cb
-		// 		)
-		// 	}.bind(this)
-		// )
-		assert(false, 'Not Implemented')
+		var self = this;
+		this.getChildren(
+		path,
+		function (err, children, stat) {
+			if (err) {
+				return cb(err);
+			}
+			function deleteOne(err) {
+				if (err) {
+					return cb(err);
+				}
+				var child = children.splice(0, 1)[0];
+				if (child) {
+					self.rmrf(path + '/' + child, deleteOne);
+				} else {
+					self.del(path, stat.version, cb);
+				}
+			}
+			deleteOne();
+		});
 	}
 
 	Session.prototype.set = function (path, data, version, cb) {
